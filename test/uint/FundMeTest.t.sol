@@ -4,6 +4,7 @@ pragma solidity ^0.8.18;
 import {Test, console} from "forge-std/Test.sol";
 import {FundMe} from "../../src/FundMe.sol";
 import {DeployFundMe} from "../../script/DeployFundMe.s.sol"; // Importing the script to deploy FundMe contract
+import {MockV3Aggregator} from "../mocks/MockV3Aggregator.sol";
 
 contract FundMeTest is Test {
     FundMe fundMe;
@@ -11,17 +12,27 @@ contract FundMeTest is Test {
     address USER = makeAddr("user"); // This is a test address, not a real one
     uint256 constant SEND_VALUE = 0.1 ether;
     uint256 constant STARTING_BALANCE = 10 ether; // Starting balance for the USER
+    MockV3Aggregator public mockV3Aggregator;
 
-    function setUp() external { // US --> fundMeTest --> FundMe
-        //fundMe = new FundMe();
-        DeployFundMe deployFundMe = new DeployFundMe();
-        fundMe = deployFundMe.run(); /**This will deploy the FundMe contract and return the instance of the contract
-         This is the same as calling fundMe = new FundMe(); */
+    // function setUp() external { // US --> fundMeTest --> FundMe
+    //     //fundMe = new FundMe();
+    //     DeployFundMe deployFundMe = new DeployFundMe();
+    //     fundMe = deployFundMe.run(); /**This will deploy the FundMe contract and return the instance of the contract
+    //      This is the same as calling fundMe = new FundMe(); */
 
-        vm.deal(USER, 10 ether); // Giving USER 10 ETH for testing
+    //     vm.deal(USER, 10 ether); // Giving USER 10 ETH for testing
+    // }
+
+    function setUp() external {
+    // 8 decimals (same as Chainlink), and 2000 USD per ETH
+    mockV3Aggregator = new MockV3Aggregator(8, 2000e8);
+
+    fundMe = new FundMe(address(mockV3Aggregator)); // inject the mock feed
+
+    vm.deal(USER, STARTING_BALANCE); // Give USER some ETH for testing
     }
 
-    function testMinimumDollarsIsFive() public view{
+    function testMinimumDollarsIsFive() public view {
         assertEq(fundMe.MINIMUM_USD (), 5e18);
     }
 
