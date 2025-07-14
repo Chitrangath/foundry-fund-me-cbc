@@ -45,7 +45,7 @@ contract FundMeTest is Test {
         vm.expectRevert();// Next line should revert
         //assert(This tx fails?reverts)
 
-        fundMe.fund(); // This will fail because we are not sending enough ETH
+        fundMe.fund{value: 0}(); // This will fail because we are not sending enough ETH
     }
 
     function testFundUpdatesFundedDataStructure() public{
